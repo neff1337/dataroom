@@ -1,0 +1,6 @@
+{
+  "extends": "@tailored-tech/config/tsconfig.base.json",
+  "compilerOptions": {
+    "strictNullChecks": true
+  }
+}

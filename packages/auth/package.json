@@ -1,0 +1,24 @@
+{
+  "name": "@tailored-tech/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@tailored-tech/db": "workspace:*",
+    "@tailored-tech/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@tailored-tech/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

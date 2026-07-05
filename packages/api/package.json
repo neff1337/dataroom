@@ -1,0 +1,27 @@
+{
+  "name": "@tailored-tech/api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@tailored-tech/auth": "workspace:*",
+    "@tailored-tech/db": "workspace:*",
+    "@tailored-tech/env": "workspace:*",
+    "@trpc/client": "catalog:",
+    "@trpc/server": "catalog:",
+    "dotenv": "catalog:",
+    "next": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@tailored-tech/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
