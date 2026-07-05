@@ -1,5 +1,6 @@
 import { protectedProcedure, publicProcedure, router } from "../index";
 import { dataroomRouter } from "./dataroom";
+import { fileRouter } from "./file";
 import { folderRouter } from "./folder";
 
 export const appRouter = router({
@@ -10,5 +11,6 @@ export const appRouter = router({
   })),
   dataroom: dataroomRouter,
   folder: folderRouter,
+  file: fileRouter,
 });
 export type AppRouter = typeof appRouter;
