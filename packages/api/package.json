@@ -16,6 +16,7 @@
     "@tailored-tech/env": "workspace:*",
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
+    "@vercel/blob": "catalog:",
     "dotenv": "catalog:",
     "next": "catalog:",
     "zod": "catalog:"
