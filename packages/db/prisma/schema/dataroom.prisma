@@ -1,0 +1,49 @@
+model Dataroom {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  folders   Folder[]
+  files     File[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+  @@map("dataroom")
+}
+
+model Folder {
+  id         String   @id @default(cuid())
+  name       String
+  dataroomId String
+  dataroom   Dataroom @relation(fields: [dataroomId], references: [id], onDelete: Cascade)
+  parentId   String?
+  parent     Folder?  @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children   Folder[] @relation("FolderTree")
+  files      File[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([dataroomId])
+  @@index([parentId])
+  @@map("folder")
+}
+
+model File {
+  id           String   @id @default(cuid())
+  name         String
+  dataroomId   String
+  dataroom     Dataroom @relation(fields: [dataroomId], references: [id], onDelete: Cascade)
+  folderId     String?
+  folder       Folder?  @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  blobUrl      String
+  blobPathname String
+  size         Int
+  contentType  String   @default("application/pdf")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([dataroomId])
+  @@index([folderId])
+  @@map("file")
+}
