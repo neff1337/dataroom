@@ -1,7 +1,7 @@
 import { createContext } from "@tailored-tech/api/context";
 import { appRouter } from "@tailored-tech/api/routers/index";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
 function handler(req: NextRequest) {
   return fetchRequestHandler({
@@ -11,4 +11,5 @@ function handler(req: NextRequest) {
     createContext: () => createContext(req),
   });
 }
+
 export { handler as GET, handler as POST };
