@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { del } from "@vercel/blob";
 import { z } from "zod";
 
@@ -11,6 +12,16 @@ import { resolveUniqueName } from "../lib/resolve-unique-name";
 
 const name = z.string().trim().min(1).max(255);
 
+const BLOB_HOST_SUFFIX = "blob.vercel-storage.com";
+
+function isVercelBlobUrl(url: string): boolean {
+  try {
+    return new URL(url).hostname.endsWith(BLOB_HOST_SUFFIX);
+  } catch {
+    return false;
+  }
+}
+
 export const fileRouter = router({
   create: protectedProcedure
     .input(
@@ -18,16 +29,25 @@ export const fileRouter = router({
         dataroomId: z.string(),
         folderId: z.string().nullable(),
         name,
-        blobUrl: z.url(),
+        blobUrl: z.url().refine(isVercelBlobUrl, "Not a Vercel Blob URL"),
         blobPathname: z.string().min(1),
+        // size is client-reported display metadata only, never trusted for auth.
         size: z.number().int().nonnegative(),
-        contentType: z.string().default("application/pdf"),
+        contentType: z.literal("application/pdf").default("application/pdf"),
       })
     )
     .mutation(async ({ ctx, input }) => {
       await assertDataroomOwner(ctx.db, ctx.session.user.id, input.dataroomId);
       if (input.folderId) {
         await assertFolderOwner(ctx.db, ctx.session.user.id, input.folderId);
+      }
+      // The blob must live under this user's namespace so a spoofed pathname
+      // can never cause del() to touch another tenant's blob on delete.
+      if (!input.blobPathname.startsWith(`${ctx.session.user.id}/`)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Blob path outside your namespace",
+        });
       }
       const siblings = await ctx.db.file.findMany({
         where: { dataroomId: input.dataroomId, folderId: input.folderId },

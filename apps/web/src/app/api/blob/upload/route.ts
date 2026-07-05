@@ -12,12 +12,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const jsonResponse = await handleUpload({
       body,
       request,
-      onBeforeGenerateToken: async () => {
+      onBeforeGenerateToken: async (pathname) => {
         const session = await auth.api.getSession({
           headers: await headers(),
         });
         if (!session?.user) {
           throw new Error("Unauthorized");
+        }
+        // Force uploads into the caller's own namespace so no one can write
+        // to (or later delete) another tenant's blob path.
+        if (!pathname.startsWith(`${session.user.id}/`)) {
+          throw new Error("Upload path outside your namespace");
         }
         return {
           allowedContentTypes: [ACCEPTED_MIME],
