@@ -11,10 +11,13 @@ import { Breadcrumbs } from "./breadcrumbs";
 import { DeleteConfirmDialog } from "./delete-confirm-dialog";
 import { ExplorerToolbar } from "./explorer-toolbar";
 import { FileItem } from "./file-item";
+import { FileUploader } from "./file-uploader";
 import { FolderItem } from "./folder-item";
+import { PdfViewerDialog } from "./pdf-viewer-dialog";
 import { RenameDialog } from "./rename-dialog";
 
 type Target = { id: string; name: string } | null;
+type ViewFile = { name: string; blobUrl: string } | null;
 
 export function Explorer({
   dataroomId,
@@ -30,6 +33,7 @@ export function Explorer({
   const [deleteFolder, setDeleteFolder] = useState<Target>(null);
   const [renameFile, setRenameFile] = useState<Target>(null);
   const [deleteFile, setDeleteFile] = useState<Target>(null);
+  const [viewFile, setViewFile] = useState<ViewFile>(null);
 
   const contents = contentsQuery.data;
   const isEmpty =
@@ -39,7 +43,9 @@ export function Explorer({
     <main className="container mx-auto max-w-5xl px-4 py-6">
       <div className="mb-4 flex items-center justify-between gap-4">
         <Breadcrumbs dataroomId={dataroomId} folderId={folderId} />
-        <ExplorerToolbar dataroomId={dataroomId} folderId={folderId} />
+        <ExplorerToolbar dataroomId={dataroomId} folderId={folderId}>
+          <FileUploader dataroomId={dataroomId} folderId={folderId} />
+        </ExplorerToolbar>
       </div>
 
       {contentsQuery.isLoading ? (
@@ -78,7 +84,9 @@ export function Explorer({
               key={file.id}
               name={file.name}
               onDelete={() => setDeleteFile({ id: file.id, name: file.name })}
-              onOpen={() => window.open(file.blobUrl, "_blank", "noopener")}
+              onOpen={() =>
+                setViewFile({ name: file.name, blobUrl: file.blobUrl })
+              }
               onRename={() => setRenameFile({ id: file.id, name: file.name })}
             />
           ))}
@@ -104,6 +112,10 @@ export function Explorer({
         kind="file"
         onOpenChange={(next) => !next && setDeleteFile(null)}
         target={deleteFile}
+      />
+      <PdfViewerDialog
+        file={viewFile}
+        onOpenChange={(next) => !next && setViewFile(null)}
       />
     </main>
   );
