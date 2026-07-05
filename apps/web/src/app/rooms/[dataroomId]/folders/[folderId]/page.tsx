@@ -1,14 +1,18 @@
+import { auth } from "@tailored-tech/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+
+import { Explorer } from "@/components/dataroom/explorer";
+
 export default async function FolderPage({
   params,
 }: {
   params: Promise<{ dataroomId: string; folderId: string }>;
 }) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) {
+    redirect("/login");
+  }
   const { dataroomId, folderId } = await params;
-  return (
-    <main className="container mx-auto max-w-5xl px-4 py-6">
-      <p className="text-muted-foreground text-sm">
-        Room {dataroomId} / Folder {folderId}
-      </p>
-    </main>
-  );
+  return <Explorer dataroomId={dataroomId} folderId={folderId} />;
 }
