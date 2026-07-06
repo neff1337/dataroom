@@ -1,3 +1,8 @@
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@tailored-tech/ui/components/avatar";
 import { Button } from "@tailored-tech/ui/components/button";
 import {
   DropdownMenu,
@@ -14,12 +19,26 @@ import { useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
 
+const WHITESPACE = /\s+/;
+
+function getInitials(name: string): string {
+  const initials = name
+    .trim()
+    .split(WHITESPACE)
+    .map((part) => part[0] ?? "")
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return initials || "?";
+}
+
 export default function UserMenu() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
   if (isPending) {
-    return <Skeleton className="h-9 w-24" />;
+    return <Skeleton className="size-9 rounded-full" />;
   }
 
   if (!session) {
@@ -32,14 +51,27 @@ export default function UserMenu() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="outline" />}>
-        {session.user.name}
+      <DropdownMenuTrigger
+        render={
+          <Button
+            aria-label="Open user menu"
+            className="size-9 rounded-full"
+            size="icon"
+            variant="ghost"
+          />
+        }
+      >
+        <Avatar>
+          {session.user.image ? (
+            <AvatarImage alt={session.user.name} src={session.user.image} />
+          ) : null}
+          <AvatarFallback>{getInitials(session.user.name)}</AvatarFallback>
+        </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-card">
+      <DropdownMenuContent>
         <DropdownMenuGroup>
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {
               authClient.signOut({

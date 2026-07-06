@@ -28,7 +28,7 @@ export function DataroomCard({
   onDelete,
 }: DataroomCardProps) {
   return (
-    <Card className="flex items-start justify-between gap-2 p-4">
+    <Card className="flex flex-row items-start justify-between gap-2 p-4">
       <Link
         className="flex min-w-0 flex-1 items-start gap-3"
         href={`/rooms/${id}`}

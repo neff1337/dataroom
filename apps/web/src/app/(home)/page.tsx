@@ -4,20 +4,22 @@ import { Empty } from "@tailored-tech/ui/components/empty";
 import { Skeleton } from "@tailored-tech/ui/components/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-
+import { CreateDataroomDialog } from "@/app/(home)/_components/create-dataroom-dialog";
+import { DataroomCard } from "@/app/(home)/_components/dataroom-card";
+import {
+  DeleteConfirmDialog,
+  type DeleteTarget,
+} from "@/components/shared/delete-confirm-dialog";
+import {
+  RenameDialog,
+  type RenameTarget,
+} from "@/components/shared/rename-dialog";
 import { trpc } from "@/utils/trpc";
 
-import { CreateDataroomDialog } from "./create-dataroom-dialog";
-import { DataroomCard } from "./dataroom-card";
-import { DeleteConfirmDialog } from "./delete-confirm-dialog";
-import { RenameDialog } from "./rename-dialog";
-
-type Target = { id: string; name: string } | null;
-
-export function DataroomHome() {
+export default function DataroomHome() {
   const roomsQuery = useQuery(trpc.dataroom.list.queryOptions());
-  const [renameTarget, setRenameTarget] = useState<Target>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Target>(null);
+  const [renameTarget, setRenameTarget] = useState<RenameTarget | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
   const rooms = roomsQuery.data;
 
@@ -54,21 +56,39 @@ export function DataroomHome() {
               id={room.id}
               key={room.id}
               name={room.name}
-              onDelete={() => setDeleteTarget({ id: room.id, name: room.name })}
-              onRename={() => setRenameTarget({ id: room.id, name: room.name })}
+              onDelete={() =>
+                setDeleteTarget({
+                  id: room.id,
+                  name: room.name,
+                  kind: "dataroom",
+                })
+              }
+              onRename={() =>
+                setRenameTarget({
+                  id: room.id,
+                  name: room.name,
+                  kind: "dataroom",
+                })
+              }
             />
           ))}
         </div>
       ) : null}
 
       <RenameDialog
-        kind="dataroom"
-        onOpenChange={(next) => !next && setRenameTarget(null)}
+        onOpenChange={(next) => {
+          if (!next) {
+            setRenameTarget(null);
+          }
+        }}
         target={renameTarget}
       />
       <DeleteConfirmDialog
-        kind="dataroom"
-        onOpenChange={(next) => !next && setDeleteTarget(null)}
+        onOpenChange={(next) => {
+          if (!next) {
+            setDeleteTarget(null);
+          }
+        }}
         target={deleteTarget}
       />
     </main>

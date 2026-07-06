@@ -5,18 +5,23 @@ import { Skeleton } from "@tailored-tech/ui/components/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
+import {
+  DeleteConfirmDialog,
+  type DeleteTarget,
+} from "@/components/shared/delete-confirm-dialog";
+import {
+  RenameDialog,
+  type RenameTarget,
+} from "@/components/shared/rename-dialog";
 import { trpc } from "@/utils/trpc";
 
 import { Breadcrumbs } from "./breadcrumbs";
-import { DeleteConfirmDialog } from "./delete-confirm-dialog";
 import { ExplorerToolbar } from "./explorer-toolbar";
 import { FileItem } from "./file-item";
 import { FileUploader } from "./file-uploader";
 import { FolderItem } from "./folder-item";
 import { PdfViewerDialog } from "./pdf-viewer-dialog";
-import { RenameDialog } from "./rename-dialog";
 
-type Target = { id: string; name: string } | null;
 type ViewFile = { name: string; blobUrl: string } | null;
 
 export function Explorer({
@@ -29,10 +34,8 @@ export function Explorer({
   const contentsQuery = useQuery(
     trpc.folder.contents.queryOptions({ dataroomId, folderId })
   );
-  const [renameFolder, setRenameFolder] = useState<Target>(null);
-  const [deleteFolder, setDeleteFolder] = useState<Target>(null);
-  const [renameFile, setRenameFile] = useState<Target>(null);
-  const [deleteFile, setDeleteFile] = useState<Target>(null);
+  const [renameTarget, setRenameTarget] = useState<RenameTarget | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [viewFile, setViewFile] = useState<ViewFile>(null);
 
   const contents = contentsQuery.data;
@@ -72,10 +75,18 @@ export function Explorer({
               key={folder.id}
               name={folder.name}
               onDelete={() =>
-                setDeleteFolder({ id: folder.id, name: folder.name })
+                setDeleteTarget({
+                  id: folder.id,
+                  name: folder.name,
+                  kind: "folder",
+                })
               }
               onRename={() =>
-                setRenameFolder({ id: folder.id, name: folder.name })
+                setRenameTarget({
+                  id: folder.id,
+                  name: folder.name,
+                  kind: "folder",
+                })
               }
             />
           ))}
@@ -83,39 +94,43 @@ export function Explorer({
             <FileItem
               key={file.id}
               name={file.name}
-              onDelete={() => setDeleteFile({ id: file.id, name: file.name })}
+              onDelete={() =>
+                setDeleteTarget({ id: file.id, name: file.name, kind: "file" })
+              }
               onOpen={() =>
                 setViewFile({ name: file.name, blobUrl: file.blobUrl })
               }
-              onRename={() => setRenameFile({ id: file.id, name: file.name })}
+              onRename={() =>
+                setRenameTarget({ id: file.id, name: file.name, kind: "file" })
+              }
             />
           ))}
         </div>
       ) : null}
 
       <RenameDialog
-        kind="folder"
-        onOpenChange={(next) => !next && setRenameFolder(null)}
-        target={renameFolder}
+        onOpenChange={(next) => {
+          if (!next) {
+            setRenameTarget(null);
+          }
+        }}
+        target={renameTarget}
       />
       <DeleteConfirmDialog
-        kind="folder"
-        onOpenChange={(next) => !next && setDeleteFolder(null)}
-        target={deleteFolder}
-      />
-      <RenameDialog
-        kind="file"
-        onOpenChange={(next) => !next && setRenameFile(null)}
-        target={renameFile}
-      />
-      <DeleteConfirmDialog
-        kind="file"
-        onOpenChange={(next) => !next && setDeleteFile(null)}
-        target={deleteFile}
+        onOpenChange={(next) => {
+          if (!next) {
+            setDeleteTarget(null);
+          }
+        }}
+        target={deleteTarget}
       />
       <PdfViewerDialog
         file={viewFile}
-        onOpenChange={(next) => !next && setViewFile(null)}
+        onOpenChange={(next) => {
+          if (!next) {
+            setViewFile(null);
+          }
+        }}
       />
     </main>
   );

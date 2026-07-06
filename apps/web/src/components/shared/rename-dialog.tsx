@@ -17,11 +17,16 @@ import { trpc } from "@/utils/trpc";
 
 type Kind = "dataroom" | "folder" | "file";
 
-interface RenameDialogProps {
+export interface RenameTarget {
+  id: string;
   kind: Kind;
+  name: string;
+}
+
+interface RenameDialogProps {
   onOpenChange: (open: boolean) => void;
   onRenamed?: () => void;
-  target: { id: string; name: string } | null;
+  target: RenameTarget | null;
 }
 
 function useRenameMutation(kind: Kind) {
@@ -38,20 +43,25 @@ function useRenameMutation(kind: Kind) {
 }
 
 export function RenameDialog({
-  kind,
   target,
   onOpenChange,
   onRenamed,
 }: RenameDialogProps) {
   const [name, setName] = useState("");
+  // Keep the last non-null target so the dialog can play its exit animation
+  // while `target` is already null during close.
+  const [active, setActive] = useState(target);
   const queryClient = useQueryClient();
-  const mutation = useRenameMutation(kind);
+  const mutation = useRenameMutation(active?.kind ?? "file");
 
   useEffect(() => {
-    setName(target?.name ?? "");
+    if (target) {
+      setActive(target);
+      setName(target.name);
+    }
   }, [target]);
 
-  if (!target) {
+  if (!active) {
     return null;
   }
 
@@ -59,7 +69,7 @@ export function RenameDialog({
 
   const submit = () => {
     mutation.mutate(
-      { id: target.id, name: trimmed },
+      { id: active.id, name: trimmed },
       {
         onSuccess: () => {
           queryClient.invalidateQueries();
@@ -76,7 +86,7 @@ export function RenameDialog({
     <Dialog onOpenChange={onOpenChange} open={Boolean(target)}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Rename {kind}</DialogTitle>
+          <DialogTitle>Rename {active.kind}</DialogTitle>
         </DialogHeader>
         <form
           onSubmit={(event) => {

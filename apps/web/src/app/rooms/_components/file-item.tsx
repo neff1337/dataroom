@@ -21,7 +21,7 @@ export function FileItem({
   onDelete: () => void;
 }) {
   return (
-    <Card className="flex items-center justify-between gap-2 p-3">
+    <Card className="flex flex-row items-center justify-between gap-2 p-3">
       <button
         className="flex min-w-0 flex-1 items-center gap-2 text-left"
         onClick={onOpen}

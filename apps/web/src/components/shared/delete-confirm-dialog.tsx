@@ -11,17 +11,23 @@ import {
   AlertDialogTitle,
 } from "@tailored-tech/ui/components/alert-dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { trpc } from "@/utils/trpc";
 
 type Kind = "dataroom" | "folder" | "file";
 
-interface DeleteConfirmDialogProps {
+export interface DeleteTarget {
+  id: string;
   kind: Kind;
+  name: string;
+}
+
+interface DeleteConfirmDialogProps {
   onDeleted?: () => void;
   onOpenChange: (open: boolean) => void;
-  target: { id: string; name: string } | null;
+  target: DeleteTarget | null;
 }
 
 const RECURSIVE_WARNING: Record<Kind, string> = {
@@ -44,15 +50,23 @@ function useRemoveMutation(kind: Kind) {
 }
 
 export function DeleteConfirmDialog({
-  kind,
   target,
   onOpenChange,
   onDeleted,
 }: DeleteConfirmDialogProps) {
   const queryClient = useQueryClient();
-  const mutation = useRemoveMutation(kind);
+  // Keep the last non-null target so the dialog can play its exit animation
+  // while `target` is already null during close.
+  const [active, setActive] = useState(target);
+  const mutation = useRemoveMutation(active?.kind ?? "file");
 
-  if (!target) {
+  useEffect(() => {
+    if (target) {
+      setActive(target);
+    }
+  }, [target]);
+
+  if (!active) {
     return null;
   }
 
@@ -60,9 +74,9 @@ export function DeleteConfirmDialog({
     <AlertDialog onOpenChange={onOpenChange} open={Boolean(target)}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete “{target.name}”?</AlertDialogTitle>
+          <AlertDialogTitle>Delete “{active.name}”?</AlertDialogTitle>
           <AlertDialogDescription>
-            {RECURSIVE_WARNING[kind]} This cannot be undone.
+            {RECURSIVE_WARNING[active.kind]} This cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -71,7 +85,7 @@ export function DeleteConfirmDialog({
             disabled={mutation.isPending}
             onClick={() =>
               mutation.mutate(
-                { id: target.id },
+                { id: active.id },
                 {
                   onSuccess: () => {
                     queryClient.invalidateQueries();
