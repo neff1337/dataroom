@@ -15,6 +15,10 @@
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
+    "@tailored-tech/db#build": {
+      "inputs": ["prisma/schema/**", "prisma.config.ts"],
+      "outputs": ["prisma/generated/**"]
+    },
     "lint": {
       "dependsOn": ["^lint"]
     },
