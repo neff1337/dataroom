@@ -8,6 +8,8 @@ Built on an existing [Better-T-Stack](https://github.com/AmanVarshney01/create-b
 monorepo (Next.js 16, tRPC v11, Better Auth, Prisma 7 / Neon Postgres, Vercel Blob,
 shadcn/ui on Base UI).
 
+**Live demo:** https://dataroom-web-nine.vercel.app/ — sign up to create your first data room.
+
 ## Features
 
 - **Auth** — email/password (Better Auth). The entire app is gated; unauthenticated
@@ -74,6 +76,20 @@ pnpm dev:web        # http://localhost:3000
 
 Sign up, create a data room, and start organizing folders and PDFs.
 
+## Deployment
+
+Deployed on Vercel: **https://dataroom-web-nine.vercel.app/**. The build task exposes the
+app env vars to Turbo, so deploying is just importing the repo and setting the same
+variables as above, with the URLs pointing at the production domain:
+
+```
+BETTER_AUTH_URL=https://dataroom-web-nine.vercel.app
+CORS_ORIGIN=https://dataroom-web-nine.vercel.app
+```
+
+`BLOB_READ_WRITE_TOKEN` is provisioned automatically when a Vercel Blob store is linked to
+the project.
+
 ## Useful commands
 
 ```bash
@@ -94,16 +110,21 @@ pnpm --filter @tailored-tech/api exec tsc --noEmit
 ## Architecture
 
 ```
-apps/web                  # Next.js 16 App Router (the only deployable)
-  src/app/                # /, /login, /rooms/[dataroomId], .../folders/[folderId]
-  src/app/api/blob/upload # Vercel Blob signed-token route (handleUpload)
-  src/components/dataroom # explorer, cards, dialogs, uploader, PDF viewer
-  src/proxy.ts            # auth redirect gate
-packages/api              # tRPC routers (dataroom, folder, file) + ownership/blob helpers
-packages/auth             # Better Auth instance
-packages/db               # Prisma schema + generated client (Dataroom/Folder/File + auth)
-packages/ui               # shadcn/Base UI primitives (style: base-lyra)
-packages/env              # type-safe env (@t3-oss/env)
+apps/web                     # Next.js 16 App Router (the only deployable)
+  src/app/(home)             # `/` — data-room list, create/rename/delete
+  src/app/(auth)/login       # sign-in / sign-up (+ _components/ forms)
+  src/app/rooms/[dataroomId] # room root and .../folders/[folderId] (the explorer)
+  src/app/rooms/_components   # explorer, toolbar, folder/file items, uploader, PDF viewer
+  src/app/api/blob/upload    # Vercel Blob signed-token route (handleUpload)
+  src/components/layout      # header, user menu, theme toggle
+  src/components/shared      # rename + delete-confirm dialogs (reused across routes)
+  src/components/providers   # TanStack Query, theme, toasts
+  src/proxy.ts               # auth redirect gate
+packages/api                 # tRPC routers (dataroom, folder, file) + ownership/blob helpers
+packages/auth                # Better Auth instance
+packages/db                  # Prisma schema + generated client (Dataroom/Folder/File + auth)
+packages/ui                  # shadcn/Base UI primitives (style: base-vega)
+packages/env                 # type-safe env (@t3-oss/env)
 ```
 
 Request flow: browser → tRPC client (TanStack Query) → `/api/trpc` → `appRouter`
